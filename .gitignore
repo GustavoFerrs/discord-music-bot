@@ -1,0 +1,15 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Arquivos de ambiente
+.env
+
+# Arquivos de música ou mídia local que você não quer subir
+music/
+*.mp3
+*.wav
