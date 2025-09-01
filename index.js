@@ -1,9 +1,9 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import prism from 'prism-media'; // <-- adicionado
+import prism from 'prism-media'; // Ajuste do FFmpeg
 prism.FFmpeg.getInfo = () => ({
-  command: 'C:\\ffmpeg\\bin\\ffmpeg.exe' // ajuste para o caminho real
+  command: 'C:\\ffmpeg\\bin\\ffmpeg.exe' // ajuste para o caminho do FFmpeg no seu sistema
 });
 
 import { Client, GatewayIntentBits } from 'discord.js';
@@ -11,34 +11,31 @@ import { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerSt
 import play from 'play-dl';
 import { createReadStream, existsSync } from 'fs';
 
-/**
- * .env exemplo:
- * DISCORD_TOKEN=SEU_TOKEN_AQUI
- * USER_ID_ALVO=351120175707193354
- * MUSICA_URL=music/minha_musica.mp3  # ou link do YouTube
- */
-
+// Variáveis do .env
 const TOKEN = process.env.DISCORD_TOKEN;
-const USER_ID_ALVO = process.env.USER_ID_ALVO;
-const MUSICA_URL = process.env.MUSICA_URL;
+const USERS_CONFIG = JSON.parse(process.env.USERS_CONFIG || '[]');
 
-if (!TOKEN || !USER_ID_ALVO || !MUSICA_URL) {
-  console.error('❌ Configure DISCORD_TOKEN, USER_ID_ALVO e MUSICA_URL no arquivo .env');
+if (!TOKEN || USERS_CONFIG.length === 0) {
+  console.error('❌ Configure DISCORD_TOKEN e USERS_CONFIG no arquivo .env');
   process.exit(1);
 }
 
+// Inicializa o bot
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
 });
 
-client.once('clientReady', () => {
+client.once('ready', () => {
   console.log(`✅ Bot online como ${client.user.tag}`);
 });
 
 client.on('voiceStateUpdate', async (oldState, newState) => {
   try {
-    // Dispara apenas quando o usuário alvo entra no canal
-    if (newState?.member?.id === String(USER_ID_ALVO) && newState.channelId && !oldState.channelId) {
+    const userConfig = USERS_CONFIG.find(u => u.id === newState?.member?.id);
+    if (!userConfig) return; // Se o usuário não estiver na lista, ignora
+
+    // Só dispara quando o usuário entra no canal (não quando troca)
+    if (newState.channelId && !oldState.channelId) {
       const canal = newState.channel;
       console.log(`🎧 ${newState.member.user.username} entrou em: ${canal.name}`);
 
@@ -53,20 +50,19 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
       connection.subscribe(player);
 
       let resource;
+      const musica = userConfig.musica;
 
-      console.log('MUSICA_URL:', JSON.stringify(MUSICA_URL))
-
-      if (existsSync(MUSICA_URL)) {
+      if (existsSync(musica)) {
         // Arquivo local
-        resource = createAudioResource(createReadStream(MUSICA_URL));
+        resource = createAudioResource(createReadStream(musica));
       } else {
-        // Link do YouTube
+        // URL do YouTube
         try {
-          const info = await play.video_info(MUSICA_URL);
+          const info = await play.video_info(musica);
           const stream = await play.stream_from_info(info);
           resource = createAudioResource(stream.stream, { inputType: stream.type });
         } catch (err) {
-          console.error('❌ Erro ao processar URL do YouTube:', err);
+          console.error(`❌ Erro ao processar URL para ${newState.member.user.username}:`, err);
           return;
         }
       }
@@ -74,16 +70,16 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
       player.play(resource);
 
       player.on(AudioPlayerStatus.Playing, () => {
-        console.log('▶️ Tocando música de entrada...');
+        console.log(`▶️ Tocando música para ${newState.member.user.username}...`);
       });
 
       player.on(AudioPlayerStatus.Idle, () => {
-        console.log('⏹️ Música terminou. Saindo do canal.');
+        console.log(`⏹️ Música terminou para ${newState.member.user.username}. Saindo do canal.`);
         try { connection.destroy(); } catch {}
       });
 
       player.on('error', (e) => {
-        console.error('Erro no player:', e);
+        console.error(`Erro no player para ${newState.member.user.username}:`, e);
         try { connection.destroy(); } catch {}
       });
     }
