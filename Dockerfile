@@ -18,4 +18,4 @@ COPY . .
 # EXPOSE 3000
 
 # Comando para iniciar o bot
-CMD ["node", "bot.js"]
+CMD ["node", "index.js"]

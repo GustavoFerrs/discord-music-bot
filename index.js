@@ -2,9 +2,9 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import prism from 'prism-media';
-prism.FFmpeg.getInfo = () => ({
-  command: 'C:\\ffmpeg\\bin\\ffmpeg.exe' 
-});
+// prism.FFmpeg.getInfo = () => ({
+//   command: 'C:\\ffmpeg\\bin\\ffmpeg.exe' 
+// });
 
 import { Client, GatewayIntentBits } from 'discord.js';
 import { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus } from '@discordjs/voice';
