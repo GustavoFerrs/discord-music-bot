@@ -1,9 +1,9 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import prism from 'prism-media'; // Ajuste do FFmpeg
+import prism from 'prism-media';
 prism.FFmpeg.getInfo = () => ({
-  command: 'C:\\ffmpeg\\bin\\ffmpeg.exe' // ajuste para o caminho do FFmpeg no seu sistema
+  command: 'C:\\ffmpeg\\bin\\ffmpeg.exe' 
 });
 
 import { Client, GatewayIntentBits } from 'discord.js';
@@ -11,7 +11,6 @@ import { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerSt
 import play from 'play-dl';
 import { createReadStream, existsSync } from 'fs';
 
-// Variáveis do .env
 const TOKEN = process.env.DISCORD_TOKEN;
 const USERS_CONFIG = JSON.parse(process.env.USERS_CONFIG || '[]');
 
