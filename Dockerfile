@@ -7,7 +7,10 @@ RUN apk add --no-cache \
     build-base \
     make \
     g++ \
-    python3
+    python3 \
+    libtool \
+    autoconf \
+    automake
 
 WORKDIR /app
 
@@ -15,7 +18,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instalar dependências Node.js
-RUN npm i
+RUN npm install
 
 # Copiar resto dos arquivos
 COPY . .
