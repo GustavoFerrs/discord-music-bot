@@ -1,8 +1,8 @@
 # Imagem base do Node
 FROM node:20-alpine
 
-# Instalar FFmpeg
-RUN apk add --no-cache ffmpeg
+# Instalar FFmpeg + libsodium
+RUN apk add --no-cache ffmpeg libsodium
 
 # Criar diretório de trabalho
 WORKDIR /app
