@@ -8,6 +8,8 @@ yarn.lock
 
 # Arquivos de ambiente
 .env
+
+# User data files
 users.json
 
 # Arquivos de música ou mídia local que você não quer subir
