@@ -1,9 +1,9 @@
 FROM node:20-alpine
 
-# Instalar dependências do sistema
+# Instalar dependências do sistema necessárias para sodium e ffmpeg
 RUN apk add --no-cache \
     ffmpeg \
-    libsodium \
+    libsodium-dev \
     build-base \
     make \
     g++ \
@@ -11,9 +11,13 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
+# Copiar arquivos de dependências primeiro (para cache do Docker)
 COPY package*.json ./
-RUN npm install
 
+# Instalar dependências Node.js
+RUN npm ci --only=production
+
+# Copiar resto dos arquivos
 COPY . .
 
 EXPOSE 3000
