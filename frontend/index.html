@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Painel do Bot</title>
+  </head>
+  <body>
+    <h1>Painel do Bot</h1>
+
+    <form id="userForm">
+      <input type="text" name="nome" placeholder="Nome" required />
+      <input type="text" name="id" placeholder="ID do usuário" required />
+      <input type="file" name="musica" required />
+      <button type="submit">Adicionar</button>
+    </form>
+
+    <h2>Usuários</h2>
+    <ul id="userList"></ul>
+
+    <script>
+      async function loadUsers() {
+        const res = await fetch("/users");
+        const users = await res.json();
+        const list = document.getElementById("userList");
+        list.innerHTML = "";
+        users.forEach((u) => {
+          const li = document.createElement("li");
+          li.textContent = `${u.nome} (${u.id}) - ${u.musica}`;
+          const btn = document.createElement("button");
+          btn.textContent = "Remover";
+          btn.onclick = async () => {
+            await fetch("/users/" + u.id, { method: "DELETE" });
+            loadUsers();
+          };
+          li.appendChild(btn);
+          list.appendChild(li);
+        });
+      }
+
+      document
+        .getElementById("userForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          const res = await fetch("/users", { method: "POST", body: formData });
+          const result = await res.json();
+
+          if (!res.ok) {
+            alert(result.error || "Erro ao adicionar usuário!");
+            return;
+          }
+
+          e.target.reset();
+          loadUsers();
+        });
+    </script>
+  </body>
+</html>

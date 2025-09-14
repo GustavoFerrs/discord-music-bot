@@ -9,13 +9,13 @@ WORKDIR /app
 
 # Copiar package.json e instalar dependências
 COPY package*.json ./
-RUN npm install --only=production
+RUN npm install
 
-# Copiar código do bot
+# Copiar código do projeto
 COPY . .
 
-# Expor a porta (se precisar, geralmente não para bots)
-# EXPOSE 3000
+# Expor a porta do backend
+EXPOSE 3000
 
-# Comando para iniciar o bot
-CMD ["node", "index.js"]
+# Comando para iniciar bot + backend
+CMD ["node", "bot.js"]

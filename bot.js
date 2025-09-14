@@ -1,39 +1,46 @@
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 dotenv.config();
 
-import prism from 'prism-media';
-// prism.FFmpeg.getInfo = () => ({
-//   command: 'C:\\ffmpeg\\bin\\ffmpeg.exe' 
-// });
-
-import { Client, GatewayIntentBits } from 'discord.js';
-import { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus } from '@discordjs/voice';
-import play from 'play-dl';
-import { createReadStream, existsSync } from 'fs';
+import { Client, GatewayIntentBits } from "discord.js";
+import {
+  joinVoiceChannel,
+  createAudioPlayer,
+  createAudioResource,
+  AudioPlayerStatus,
+} from "@discordjs/voice";
+import play from "play-dl";
+import { createReadStream, existsSync, readFileSync } from "fs";
 
 const TOKEN = process.env.DISCORD_TOKEN;
-const USERS_CONFIG = JSON.parse(process.env.USERS_CONFIG || '[]');
 
-if (!TOKEN || USERS_CONFIG.length === 0) {
-  console.error('❌ Configure DISCORD_TOKEN e USERS_CONFIG no arquivo .env');
+// Função para carregar usuários do JSON
+function loadUsers() {
+  try {
+    return JSON.parse(readFileSync("users.json"));
+  } catch {
+    return [];
+  }
+}
+
+if (!TOKEN) {
+  console.error("❌ Configure o DISCORD_TOKEN no arquivo .env");
   process.exit(1);
 }
 
-// Inicializa o bot
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
 });
 
-client.once('clientReady', () => {
+client.once("clientReady", () => {
   console.log(`✅ Bot online como ${client.user.tag}`);
 });
 
-client.on('voiceStateUpdate', async (oldState, newState) => {
+client.on("voiceStateUpdate", async (oldState, newState) => {
   try {
-    const userConfig = USERS_CONFIG.find(u => u.id === newState?.member?.id);
-    if (!userConfig) return; // Se o usuário não estiver na lista, ignora
+    const USERS_CONFIG = loadUsers();
+    const userConfig = USERS_CONFIG.find((u) => u.id === newState?.member?.id);
+    if (!userConfig) return;
 
-    // Só dispara quando o usuário entra no canal (não quando troca)
     if (newState.channelId && !oldState.channelId) {
       const canal = newState.channel;
       console.log(`🎧 ${newState.member.user.username} entrou em: ${canal.name}`);
@@ -52,14 +59,14 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
       const musica = userConfig.musica;
 
       if (existsSync(musica)) {
-        // Arquivo local
         resource = createAudioResource(createReadStream(musica));
       } else {
-        // URL do YouTube
         try {
           const info = await play.video_info(musica);
           const stream = await play.stream_from_info(info);
-          resource = createAudioResource(stream.stream, { inputType: stream.type });
+          resource = createAudioResource(stream.stream, {
+            inputType: stream.type,
+          });
         } catch (err) {
           console.error(`❌ Erro ao processar URL para ${newState.member.user.username}:`, err);
           return;
@@ -74,19 +81,23 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 
       player.on(AudioPlayerStatus.Idle, () => {
         console.log(`⏹️ Música terminou para ${newState.member.user.username}. Saindo do canal.`);
-        try { connection.destroy(); } catch {}
+        try {
+          connection.destroy();
+        } catch {}
       });
 
-      player.on('error', (e) => {
+      player.on("error", (e) => {
         console.error(`Erro no player para ${newState.member.user.username}:`, e);
-        try { connection.destroy(); } catch {}
+        try {
+          connection.destroy();
+        } catch {}
       });
     }
   } catch (err) {
-    console.error('Erro ao processar voiceStateUpdate:', err);
+    console.error("Erro ao processar voiceStateUpdate:", err);
   }
 });
 
-client.login(TOKEN).catch(err => {
-  console.error('Falha ao logar:', err);
+client.login(TOKEN).catch((err) => {
+  console.error("Falha ao logar:", err);
 });
