@@ -15,7 +15,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instalar dependências Node.js
-RUN npm ci --only=production
+RUN npm i
 
 # Copiar resto dos arquivos
 COPY . .
