@@ -18,4 +18,4 @@ COPY . .
 EXPOSE 3000
 
 # Comando para iniciar bot + backend
-CMD ["node", "bot.js"]
+CMD ["node", "index.js"]
