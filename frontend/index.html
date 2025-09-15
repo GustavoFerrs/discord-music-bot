@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <link rel="stylesheet" href="styles.css">
   <meta charset="UTF-8" />
   <title>Painel do Bot</title>
 </head>
+
 <body>
   <div class="container">
     <h1>🤖 Painel do Bot</h1>
@@ -13,18 +15,18 @@
       <div class="input-group">
         <input type="text" name="nome" placeholder="Nome do usuário" required />
       </div>
-      
+
       <div class="input-group password-container">
         <input type="password" name="id" id="idInput" placeholder="ID do usuário" required />
         <button type="button" class="toggle-password" onclick="togglePassword()">
           <span id="toggleIcon">👁️</span>
         </button>
       </div>
-      
+
       <div class="input-group">
         <input type="file" name="musica" accept="audio/*" required />
       </div>
-      
+
       <button type="submit">Adicionar Usuário</button>
     </form>
 
@@ -36,7 +38,7 @@
     function togglePassword() {
       const idInput = document.getElementById('idInput');
       const toggleIcon = document.getElementById('toggleIcon');
-      
+
       if (idInput.type === 'password') {
         idInput.type = 'text';
         toggleIcon.textContent = '🙈';
@@ -51,23 +53,49 @@
         const res = await fetch("/users");
         const users = await res.json();
         const list = document.getElementById("userList");
-        
+
         if (users.length === 0) {
           list.innerHTML = '<li class="empty-state">Nenhum usuário cadastrado ainda</li>';
           return;
         }
-        
+
         list.innerHTML = "";
         users.forEach(u => {
           const li = document.createElement("li");
-          
+
           const userInfo = document.createElement("div");
           userInfo.className = "user-info";
+
+          const idSpan = document.createElement("small");
+          idSpan.textContent = "*****";
+          idSpan.dataset.realId = u.id;
+
+
+          const toggleBtn = document.createElement("button");
+          toggleBtn.className = "toggle-id";
+          toggleBtn.textContent = "👁️";
+          toggleBtn.onclick = () => {
+            if (idSpan.textContent === "*****") {
+              idSpan.textContent = idSpan.dataset.realId;
+              toggleBtn.textContent = "🙈";
+            } else {
+              idSpan.textContent = "*****";
+              toggleBtn.textContent = "👁️";
+            }
+          };
+
           userInfo.innerHTML = `
-            <strong>${u.nome}</strong><br>
-            <small>ID: ${u.id} • Música: ${u.musica}</small>
-          `;
-          
+        <strong>${u.nome}</strong><br>
+        <small>Música: ${u.musica}</small>
+      `;
+
+          const idWrapper = document.createElement("div");
+          idWrapper.innerHTML = "<small>ID: </small>";
+          idWrapper.appendChild(idSpan);
+          idWrapper.appendChild(toggleBtn);
+
+          userInfo.appendChild(idWrapper);
+
           const btn = document.createElement("button");
           btn.className = "remove-btn";
           btn.textContent = "Remover";
@@ -81,13 +109,13 @@
               }
             }
           };
-          
+
           li.appendChild(userInfo);
           li.appendChild(btn);
           list.appendChild(li);
         });
       } catch (error) {
-        document.getElementById("userList").innerHTML = 
+        document.getElementById("userList").innerHTML =
           '<li class="empty-state">Erro ao carregar usuários</li>';
       }
     }
@@ -95,7 +123,7 @@
     document.getElementById("userForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
-      
+
       try {
         const res = await fetch("/users", { method: "POST", body: formData });
         const result = await res.json();
@@ -107,18 +135,17 @@
 
         e.target.reset();
         loadUsers();
-        
-        // Reset do campo de senha
+
         document.getElementById('idInput').type = 'password';
         document.getElementById('toggleIcon').textContent = '👁️';
-        
+
       } catch (error) {
         alert("Erro de conexão ao adicionar usuário!");
       }
     });
 
-    // Carregar usuários ao iniciar
     loadUsers();
   </script>
 </body>
+
 </html>
